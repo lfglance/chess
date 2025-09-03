@@ -5,10 +5,10 @@ Chess Games Flask Web App
 A simple Flask web application to display and analyze chess games from Lichess.
 """
 
-from flask import Flask, render_template, request, jsonify
-from game_analyzer import analyze_games_from_file, analyze_game_with_llm, show_cached_analyses, list_cached_analyses
+from flask import Flask, render_template, request
+from game_analyzer import analyze_games_from_file, list_cached_analyses
 from datetime import datetime
-import os
+import markdown
 
 app = Flask(__name__)
 
@@ -63,9 +63,14 @@ def analyze_game(game_id):
             return render_template('error.html', 
                                  error_message="Failed to generate analysis.")
         
+        # Convert markdown to HTML
+        md = markdown.Markdown(extensions=['extra', 'codehilite'])
+        analysis_html = md.convert(analysis)
+        
         return render_template('game_analysis.html', 
                              game=game, 
-                             analysis=analysis, 
+                             analysis=analysis,
+                             analysis_html=analysis_html,
                              model=model)
     
     except Exception as e:

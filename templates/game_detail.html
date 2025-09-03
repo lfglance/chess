@@ -24,9 +24,9 @@
             <div class="info-label">Result</div>
             <div class="info-value">
                 {% if game.winner == "white" %}
-                    <span class="winner-white">White wins</span>
+                    <span class="winner-white">{{ game.white_player }} wins (White)</span>
                 {% elif game.winner == "black" %}
-                    <span class="winner-black">Black wins</span>
+                    <span class="winner-black">{{ game.black_player }} wins (Black)</span>
                 {% else %}
                     <span class="winner-draw">Draw</span>
                 {% endif %}

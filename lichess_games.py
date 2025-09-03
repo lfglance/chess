@@ -11,6 +11,8 @@ import sys
 import requests
 from typing import Optional
 import json
+import time
+from datetime import datetime
 
 class LichessGamesFetcher:
     def __init__(self, api_token: Optional[str] = None):
@@ -96,6 +98,66 @@ class LichessGamesFetcher:
             print(f"✗ Failed to fetch games: {e}")
             return []
 
+    def fetch_all_games(self, batch_size: int = 30, delay_between_batches: float = 1.0) -> list:
+        """
+        Fetch all games for the user in batches with rate limiting.
+        
+        Args:
+            batch_size: Number of games to fetch per batch (max 30)
+            delay_between_batches: Delay in seconds between batch requests
+        """
+        if batch_size > 30:
+            batch_size = 30
+            print("Warning: batch_size reduced to 30 (API limit)")
+        
+        all_games = []
+        batch_num = 1
+        last_timestamp = None
+        
+        print(f"Starting to fetch all games in batches of {batch_size}...")
+        print(f"Rate limiting: {delay_between_batches}s delay between requests")
+        
+        while True:
+            print(f"\n--- Batch {batch_num} ---")
+            
+            # Fetch batch with timestamp filter to avoid duplicates
+            batch_games = self.fetch_games(
+                max_games=batch_size,
+                until=last_timestamp  # Fetch games older than the last game from previous batch
+            )
+            
+            if not batch_games:
+                print("No more games found. Finished fetching all games.")
+                break
+            
+            # Add games to our collection
+            all_games.extend(batch_games)
+            
+            # Update timestamp for next batch (use oldest game's timestamp)
+            last_timestamp = batch_games[-1].get('createdAt')
+            
+            print(f"Fetched {len(batch_games)} games in batch {batch_num}")
+            print(f"Total games collected so far: {len(all_games)}")
+            
+            if last_timestamp:
+                readable_date = datetime.fromtimestamp(last_timestamp / 1000).strftime('%Y-%m-%d %H:%M:%S')
+                print(f"Oldest game in this batch: {readable_date}")
+            
+            # If we got fewer games than requested, we've reached the end
+            if len(batch_games) < batch_size:
+                print("Received fewer games than requested. Reached end of games list.")
+                break
+            
+            # Rate limiting: wait before next request
+            if delay_between_batches > 0:
+                print(f"Waiting {delay_between_batches}s before next batch...")
+                time.sleep(delay_between_batches)
+            
+            batch_num += 1
+        
+        print(f"\n✓ Finished fetching all games. Total: {len(all_games)} games")
+        return all_games
+
     def save_games_to_file(self, games: list, filename: str = "lichess_games.json"):
         """Save games to a JSON file."""
         try:
@@ -126,9 +188,9 @@ def main():
         # if not fetcher.test_auth():
         #     return 1
 
-        # Fetch all games (you can modify this to add limits)
-        print("\nFetching games...")
-        games = fetcher.fetch_games()
+        # Fetch all games with batching and rate limiting
+        print("\nFetching all games...")
+        games = fetcher.fetch_all_games(batch_size=30, delay_between_batches=1.0)
 
         if games:
             # Save to file

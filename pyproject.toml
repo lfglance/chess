@@ -8,6 +8,7 @@ dependencies = [
     "chess",
     "flask>=3.1.2",
     "imageio>=2.37.0",
+    "markdown>=3.8.2",
     "pillow>=11.3.0",
     "python-chess>=1.2.0",
     "requests>=2.32.5",
