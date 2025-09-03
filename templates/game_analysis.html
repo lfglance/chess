@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Analysis: {{ game.game_id }} - Chess Games{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 1rem;">
+    <a href="/game/{{ game.game_id }}" class="btn btn-secondary">← Back to Game</a>
+    <a href="/" class="btn btn-secondary">← Back to Games</a>
+</div>
+
+<h2>AI Analysis: Game {{ game.game_id }}</h2>
+
+<div class="card">
+    <div class="info-item">
+        <div class="info-label">Analysis Model</div>
+        <div class="info-value">{{ model }}</div>
+    </div>
+    
+    <div class="game-info">
+        <div class="info-item">
+            <div class="info-label">Players</div>
+            <div class="info-value">
+                <strong>{{ game.white_player }}</strong> ({{ game.white_rating }}) 
+                vs 
+                <strong>{{ game.black_player }}</strong> ({{ game.black_rating }})
+            </div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Result</div>
+            <div class="info-value">
+                {% if game.winner == "white" %}
+                    <span class="winner-white">White wins</span>
+                {% elif game.winner == "black" %}
+                    <span class="winner-black">Black wins</span>
+                {% else %}
+                    <span class="winner-draw">Draw</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Opening</div>
+            <div class="info-value">{{ game.opening_name }} ({{ game.opening_eco }})</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Date</div>
+            <div class="info-value">{{ game.created_at|format_datetime }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>🤖 AI Analysis</h3>
+    <div class="analysis">{{ analysis }}</div>
+</div>
+
+<div style="margin-top: 2rem;">
+    <h3>Try Different Models</h3>
+    <div style="margin-top: 1rem;">
+        {% if model != "llama3.2:1b" %}
+            <a href="/analyze/{{ game.game_id }}?model=llama3.2:1b" class="btn">Llama 3.2 1B</a>
+        {% endif %}
+        {% if model != "mistral:7b" %}
+            <a href="/analyze/{{ game.game_id }}?model=mistral:7b" class="btn btn-secondary">Mistral 7B</a>
+        {% endif %}
+        {% if model != "deepseek-r1:7b" %}
+            <a href="/analyze/{{ game.game_id }}?model=deepseek-r1:7b" class="btn btn-secondary">DeepSeek R1</a>
+        {% endif %}
+        <a href="/analyze/{{ game.game_id }}?model={{ model }}&force_refresh=true" class="btn btn-danger">Refresh Analysis</a>
+    </div>
+</div>
+{% endblock %}

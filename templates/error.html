@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Error - Chess Games{% endblock %}
+
+{% block content %}
+<div class="error">
+    <h2>⚠️ Error</h2>
+    <p>{{ error_message }}</p>
+</div>
+
+<div style="margin-top: 2rem;">
+    <a href="/" class="btn">← Back to Games</a>
+</div>
+{% endblock %}

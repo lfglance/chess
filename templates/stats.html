@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Statistics - Chess Games{% endblock %}
+
+{% block content %}
+<h2>📊 Your Chess Statistics</h2>
+
+<div class="stats-grid">
+    <div class="card stat-card">
+        <span class="stat-number">{{ stats.total_games }}</span>
+        <div>Total Games</div>
+    </div>
+    <div class="card stat-card">
+        <span class="stat-number winner-white">{{ stats.wins }}</span>
+        <div>Wins</div>
+    </div>
+    <div class="card stat-card">
+        <span class="stat-number winner-black">{{ stats.losses }}</span>
+        <div>Losses</div>
+    </div>
+    <div class="card stat-card">
+        <span class="stat-number winner-draw">{{ stats.draws }}</span>
+        <div>Draws</div>
+    </div>
+    <div class="card stat-card">
+        <span class="stat-number">{{ stats.win_rate }}%</span>
+        <div>Win Rate</div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>🏆 Most Played Openings</h3>
+    {% for opening, count in stats.top_openings %}
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #e2e8f0;">
+            <span>{{ opening }}</span>
+            <span style="font-weight: bold; color: #667eea;">{{ count }} games</span>
+        </div>
+    {% endfor %}
+</div>
+
+{% if stats.latest_game %}
+<div class="card">
+    <h3>📅 Recent Activity</h3>
+    <div class="game-info">
+        <div class="info-item">
+            <div class="info-label">Latest Game</div>
+            <div class="info-value">
+                <strong>{{ stats.latest_game.game_id }}</strong> - 
+                {{ stats.latest_game.white_player }} vs {{ stats.latest_game.black_player }}
+                ({{ stats.latest_game.created_at|format_datetime }})
+                <br>
+                <a href="/game/{{ stats.latest_game.game_id }}" class="btn" style="margin-top: 0.5rem;">View Game</a>
+            </div>
+        </div>
+        {% if stats.oldest_game %}
+        <div class="info-item">
+            <div class="info-label">First Recorded Game</div>
+            <div class="info-value">
+                <strong>{{ stats.oldest_game.game_id }}</strong> - 
+                {{ stats.oldest_game.white_player }} vs {{ stats.oldest_game.black_player }}
+                ({{ stats.oldest_game.created_at|format_datetime }})
+                <br>
+                <a href="/game/{{ stats.oldest_game.game_id }}" class="btn" style="margin-top: 0.5rem;">View Game</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<div style="margin-top: 2rem;">
+    <a href="/" class="btn">← Back to Games</a>
+    <a href="/cache" class="btn btn-secondary">View AI Analyses</a>
+</div>
+{% endblock %}

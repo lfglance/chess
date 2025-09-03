@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Game {{ game.game_id }} - Chess Games{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 1rem;">
+    <a href="/" class="btn btn-secondary">← Back to Games</a>
+    <a href="https://lichess.org/{{ game.game_id }}" target="_blank" class="btn">View on Lichess</a>
+</div>
+
+<h2>Game {{ game.game_id }}</h2>
+
+<div class="card">
+    <div class="game-info">
+        <div class="info-item">
+            <div class="info-label">White Player</div>
+            <div class="info-value">{{ game.white_player }} ({{ game.white_rating }})</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Black Player</div>
+            <div class="info-value">{{ game.black_player }} ({{ game.black_rating }})</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Result</div>
+            <div class="info-value">
+                {% if game.winner == "white" %}
+                    <span class="winner-white">White wins</span>
+                {% elif game.winner == "black" %}
+                    <span class="winner-black">Black wins</span>
+                {% else %}
+                    <span class="winner-draw">Draw</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Opening</div>
+            <div class="info-value">{{ game.opening_name }} ({{ game.opening_eco }})</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Date & Time</div>
+            <div class="info-value">{{ game.created_at|format_datetime }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Game Status</div>
+            <div class="info-value">{{ game.game_status.title() }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Time Control</div>
+            <div class="info-value">{{ game.time_control }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Total Moves</div>
+            <div class="info-value">{{ game.total_moves }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Complete Game Moves</h3>
+    <div class="moves" style="white-space: normal; line-height: 1.8;">
+        {% for i in range(0, game.moves|length, 2) %}
+            {% set move_num = (i // 2) + 1 %}
+            {% set white_move = game.moves[i] if i < game.moves|length else "" %}
+            {% set black_move = game.moves[i + 1] if i + 1 < game.moves|length else "" %}
+            
+            <span style="margin-right: 1rem;">
+                <strong>{{ move_num }}.</strong> 
+                {{ white_move }}
+                {% if black_move %}{{ black_move }}{% endif %}
+            </span>
+        {% endfor %}
+    </div>
+</div>
+
+<div style="margin-top: 2rem;">
+    <h3>AI Analysis</h3>
+    <p>Analyze this game with different AI models:</p>
+    <div style="margin-top: 1rem;">
+        <a href="/analyze/{{ game.game_id }}?model=llama3.2:1b" class="btn">Analyze with Llama 3.2 1B</a>
+        <a href="/analyze/{{ game.game_id }}?model=mistral:7b" class="btn btn-secondary">Analyze with Mistral 7B</a>
+        <a href="/analyze/{{ game.game_id }}?model=deepseek-r1:7b" class="btn btn-secondary">Analyze with DeepSeek R1</a>
+    </div>
+    <div style="margin-top: 0.5rem;">
+        <a href="/analyze/{{ game.game_id }}?force_refresh=true" class="btn btn-danger">Force New Analysis</a>
+    </div>
+</div>
+{% endblock %}

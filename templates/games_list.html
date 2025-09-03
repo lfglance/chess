@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Chess Games - {{ games|length }} Games{% endblock %}
+
+{% block content %}
+<h2>Your Chess Games ({{ games|length }} total)</h2>
+
+<div class="game-info">
+    <div class="info-item">
+        <div class="info-label">Total Games</div>
+        <div class="info-value">{{ games|length }}</div>
+    </div>
+    <div class="info-item">
+        <div class="info-label">Latest Game</div>
+        <div class="info-value">{{ games[0].created_at|format_datetime if games else "No games" }}</div>
+    </div>
+    <div class="info-item">
+        <div class="info-label">Oldest Game</div>
+        <div class="info-value">{{ games[-1].created_at|format_datetime if games else "No games" }}</div>
+    </div>
+</div>
+
+{% for game in games %}
+<div class="card">
+    <div class="game-info">
+        <div class="info-item">
+            <div class="info-label">Game ID</div>
+            <div class="info-value">{{ game.game_id }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Players</div>
+            <div class="info-value">
+                <strong>{{ game.white_player }}</strong> ({{ game.white_rating }}) 
+                vs 
+                <strong>{{ game.black_player }}</strong> ({{ game.black_rating }})
+            </div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Result</div>
+            <div class="info-value">
+                {% if game.winner == "white" %}
+                    <span class="winner-white">White wins</span>
+                {% elif game.winner == "black" %}
+                    <span class="winner-black">Black wins</span>
+                {% else %}
+                    <span class="winner-draw">Draw</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Opening</div>
+            <div class="info-value">{{ game.opening_name }} ({{ game.opening_eco }})</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Date</div>
+            <div class="info-value">{{ game.created_at|format_datetime }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Status</div>
+            <div class="info-value">{{ game.game_status.title() }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Time Control</div>
+            <div class="info-value">{{ game.time_control }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Moves</div>
+            <div class="info-value">{{ game.total_moves }} moves</div>
+        </div>
+    </div>
+    
+    <div class="moves">
+        <strong>Moves:</strong> {{ game.moves|format_moves(15) }}
+    </div>
+    
+    <div style="margin-top: 1rem;">
+        <a href="/game/{{ game.game_id }}" class="btn">View Details</a>
+        <a href="/analyze/{{ game.game_id }}" class="btn btn-secondary">Analyze with AI</a>
+        <a href="https://lichess.org/{{ game.game_id }}" target="_blank" class="btn btn-secondary">View on Lichess</a>
+    </div>
+</div>
+{% endfor %}
+
+{% if not games %}
+<div class="error">
+    No games found. Make sure lichess_games.json exists and contains game data.
+</div>
+{% endif %}
+{% endblock %}

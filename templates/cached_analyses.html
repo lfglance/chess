@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Cached Analyses - Chess Games{% endblock %}
+
+{% block content %}
+<h2>🧠 Cached AI Analyses</h2>
+
+{% if cached %}
+    <div class="info-item" style="margin-bottom: 2rem;">
+        <div class="info-label">Total Cached Analyses</div>
+        <div class="info-value">{{ cached|length }}</div>
+    </div>
+
+    {% for analysis in cached %}
+    <div class="card cache-item">
+        <div class="game-info">
+            <div class="info-item">
+                <div class="info-label">Game ID</div>
+                <div class="info-value">
+                    <strong>{{ analysis.game_id }}</strong>
+                    <br>
+                    <a href="/game/{{ analysis.game_id }}" class="btn" style="margin-top: 0.5rem;">View Game</a>
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">AI Model</div>
+                <div class="info-value">{{ analysis.model }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Player</div>
+                <div class="info-value">{{ analysis.username }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Opening</div>
+                <div class="info-value">{{ analysis.opening }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Analyzed</div>
+                <div class="info-value">
+                    {% if analysis.timestamp %}
+                        {{ analysis.timestamp[:19]|replace('T', ' ') }}
+                    {% else %}
+                        Unknown
+                    {% endif %}
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Actions</div>
+                <div class="info-value">
+                    <a href="/analyze/{{ analysis.game_id }}?model={{ analysis.model }}" class="btn btn-secondary">View Analysis</a>
+                    <a href="/analyze/{{ analysis.game_id }}?model={{ analysis.model }}&force_refresh=true" class="btn btn-danger">Refresh</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+{% else %}
+    <div class="card">
+        <p>No cached analyses found. Analyze some games with AI to see them here!</p>
+        <div style="margin-top: 1rem;">
+            <a href="/" class="btn">Go to Games</a>
+        </div>
+    </div>
+{% endif %}
+
+<div style="margin-top: 2rem;">
+    <a href="/" class="btn btn-secondary">← Back to Games</a>
+    <a href="/stats" class="btn btn-secondary">View Statistics</a>
+</div>
+{% endblock %}
