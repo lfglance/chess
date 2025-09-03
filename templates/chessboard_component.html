@@ -1,0 +1,211 @@
+{% macro chess_board_scripts() %}
+<link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+<script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+{% endmacro %}
+
+{% macro chess_board_html(game_id="chessboard") %}
+<!-- Interactive Chess Board Section -->
+<div class="card">
+    <h3>Interactive Game Board</h3>
+    <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+        <!-- Chess Board -->
+        <div style="flex: 1; min-width: 400px;">
+            <div id="{{ game_id }}" style="width: 100%; max-width: 500px;"></div>
+            <div style="margin-top: 1rem;">
+                <button id="startBtn" class="btn btn-secondary">Start</button>
+                <button id="prevBtn" class="btn btn-secondary">← Previous</button>
+                <button id="nextBtn" class="btn btn-secondary">Next →</button>
+                <button id="endBtn" class="btn btn-secondary">End</button>
+            </div>
+            <div style="margin-top: 0.5rem;">
+                <span>Move: <strong id="currentMove">0</strong> / <strong id="totalMoves">0</strong></span>
+            </div>
+        </div>
+        
+        <!-- Move List -->
+        <div style="flex: 1; min-width: 300px;">
+            <h4>Move List</h4>
+            <div id="moveList" style="background: #f7fafc; padding: 1rem; border-radius: 4px; max-height: 400px; overflow-y: auto;">
+                <!-- Moves will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endmacro %}
+
+{% macro chess_board_js(game_moves, board_id="chessboard") %}
+<script>
+$(document).ready(function() {
+    // Game data
+    const gameMoves = {{ game_moves | tojson }};
+    const boardId = "{{ board_id }}";
+    
+    // Check if Chess is available
+    if (typeof Chess === 'undefined') {
+        console.error('Chess.js library not loaded');
+        $('#{{ board_id }}').html('<p style="color: red;">Chess library failed to load. Please refresh the page.</p>');
+        return;
+    }
+    
+    // Initialize chess game and board
+    let chess = new Chess();
+    let currentMoveIndex = -1; // -1 means starting position
+    
+    const board = ChessBoard(boardId, {
+        position: 'start',
+        showNotation: true,
+        pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
+    });
+    
+    // Populate move list
+    function populateMoveList() {
+        const moveListHtml = [];
+        for (let i = 0; i < gameMoves.length; i += 2) {
+            const moveNum = Math.floor(i / 2) + 1;
+            const whiteMove = gameMoves[i] || '';
+            const blackMove = gameMoves[i + 1] || '';
+            
+            let moveHtml = '<div class="move-pair" style="margin-bottom: 0.5rem;">';
+            moveHtml += '<strong>' + moveNum + '.</strong>';
+            
+            if (whiteMove) {
+                moveHtml += '<span class="move-btn" data-move="' + i + '" style="cursor: pointer; padding: 0.2rem 0.4rem; margin: 0 0.2rem; border-radius: 3px; background: #e2e8f0;">' + whiteMove + '</span>';
+            }
+            
+            if (blackMove) {
+                moveHtml += '<span class="move-btn" data-move="' + (i + 1) + '" style="cursor: pointer; padding: 0.2rem 0.4rem; margin: 0 0.2rem; border-radius: 3px; background: #e2e8f0;">' + blackMove + '</span>';
+            }
+            
+            moveHtml += '</div>';
+            moveListHtml.push(moveHtml);
+        }
+        
+        $('#moveList').html(moveListHtml.join(''));
+        $('#totalMoves').text(gameMoves.length);
+        
+        // Add click handlers for moves
+        $('.move-btn').click(function() {
+            const moveIndex = parseInt($(this).data('move'));
+            goToMove(moveIndex);
+        });
+    }
+    
+    // Update the current move display
+    function updateMoveDisplay() {
+        $('#currentMove').text(currentMoveIndex + 1);
+        
+        // Highlight the current move in the move list
+        $('.move-btn').removeClass('active-move');
+        if (currentMoveIndex >= 0) {
+            $(`.move-btn[data-move="${currentMoveIndex}"]`).addClass('active-move');
+        }
+    }
+    
+    // Go to a specific move
+    function goToMove(moveIndex) {
+        if (moveIndex < -1 || moveIndex >= gameMoves.length) return;
+        
+        // Reset the chess game
+        chess = new Chess();
+        
+        // Play moves up to the target index
+        for (let i = 0; i <= moveIndex; i++) {
+            if (i < gameMoves.length) {
+                const move = chess.move(gameMoves[i]);
+                if (!move) {
+                    console.error('Invalid move:', gameMoves[i], 'at index', i);
+                    return;
+                }
+            }
+        }
+        
+        currentMoveIndex = moveIndex;
+        board.position(chess.fen());
+        updateMoveDisplay();
+    }
+    
+    // Navigation button handlers
+    $('#startBtn').click(function() {
+        goToMove(-1);
+    });
+    
+    $('#prevBtn').click(function() {
+        if (currentMoveIndex > -1) {
+            goToMove(currentMoveIndex - 1);
+        }
+    });
+    
+    $('#nextBtn').click(function() {
+        if (currentMoveIndex < gameMoves.length - 1) {
+            goToMove(currentMoveIndex + 1);
+        }
+    });
+    
+    $('#endBtn').click(function() {
+        goToMove(gameMoves.length - 1);
+    });
+    
+    // Keyboard navigation
+    $(document).keydown(function(e) {
+        switch(e.which) {
+            case 37: // left arrow
+                $('#prevBtn').click();
+                break;
+            case 39: // right arrow
+                $('#nextBtn').click();
+                break;
+            case 36: // home
+                $('#startBtn').click();
+                break;
+            case 35: // end
+                $('#endBtn').click();
+                break;
+        }
+    });
+    
+    // Initialize
+    populateMoveList();
+    updateMoveDisplay();
+});
+</script>
+
+<style>
+/* Custom styles for the interactive chess board */
+.move-btn:hover {
+    background: #cbd5e0 !important;
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
+}
+
+.move-btn.active-move {
+    background: #667eea !important;
+    color: white !important;
+    font-weight: bold;
+}
+
+#{{ board_id }} {
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Responsive design for chess board */
+@media (max-width: 768px) {
+    #{{ board_id }} {
+        max-width: 100%;
+    }
+    
+    .move-btn {
+        font-size: 12px;
+        padding: 0.1rem 0.3rem !important;
+    }
+}
+</style>
+{% endmacro %}

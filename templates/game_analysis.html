@@ -1,6 +1,11 @@
 {% extends "base.html" %}
+{% from 'chessboard_component.html' import chess_board_scripts, chess_board_html, chess_board_js %}
 
 {% block title %}Analysis: {{ game.game_id }} - Chess Games{% endblock %}
+
+{% block head_scripts %}
+{{ chess_board_scripts() }}
+{% endblock %}
 
 {% block content %}
 <div style="margin-bottom: 1rem;">
@@ -9,6 +14,8 @@
 </div>
 
 <h2>AI Analysis: Game {{ game.game_id }}</h2>
+
+{{ chess_board_html("analysis-chessboard") }}
 
 <div class="card">
     <div class="info-item">
@@ -68,4 +75,8 @@
         <a href="/analyze/{{ game.game_id }}?model={{ model }}&force_refresh=true" class="btn btn-danger">Refresh Analysis</a>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+{{ chess_board_js(game.moves, "analysis-chessboard") }}
 {% endblock %}
